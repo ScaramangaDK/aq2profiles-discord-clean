@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Player Profiles – Discord Login</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<style>
+  :root{ --bg:#0b0d0f; --panel:#121622; --ink:#111723; --border:#2a2f3d; --text:#e5e7eb; --muted:#9ca3af; --accent:#f97316; --accent2:#ef4444; }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#161a27,#22283a);border-bottom:1px solid rgba(255,255,255,.06)}
+  .container{max-width:1500px;margin:0 auto;padding:12px 16px}
+  .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .title{font-size:28px;margin:0;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
+  .logo{height:144px;width:auto;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#0d1018}
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  input[type="text"],input[type="number"],input[type="search"],input[type="file"],textarea,select{width:100%;padding:8px 10px;border:1px solid #384056;background:#0e1220;color:var(--text);border-radius:8px}
+  button{background:linear-gradient(180deg,var(--accent2),var(--accent));border:0;padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer}
+  button.secondary{background:transparent;border:1px solid #394055}
+  button.warn{background:linear-gradient(180deg,#dc2626,#7f1d1d)}
+  main{max-width:1500px;margin:0 auto;padding:16px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px}
+  .card .content{padding:16px}
+  .table-wrap{border:1px solid var(--border);border-radius:12px;overflow:auto}
+  table{width:100%;border-collapse:separate;border-spacing:0}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:14px;text-align:left}
+  thead th{position:sticky;top:0;background:var(--ink);z-index:1}
+  tbody tr:hover{background:rgba(147,197,253,.08)}
+  a.nick{color:var(--accent);text-decoration:none;cursor:pointer;font-weight:700}
+  a.nick:hover{text-decoration:underline;filter:brightness(1.08)}
+  .num{text-align:right}.center{text-align:center}.narrow{min-width:88px;max-width:120px}.small{width:1%;white-space:nowrap}
+  .role-indicator{font-size:12px;color:#9ca3af}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal.open{display:flex}
+  .modal-card{width:min(820px,92vw);background:#1a1d29;border:1px solid var(--border);border-radius:12px;padding:18px}
+  .profile-pic{max-width:100%;height:auto;border-radius:10px;border:1px solid var(--border);box-shadow:0 10px 18px rgba(0,0,0,.35)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .col{flex:1 1 220px}
+  pre.code{background:#0b0d0f;padding:10px;border-radius:8px;max-height:60vh;overflow:auto;white-space:pre-wrap;border:1px solid var(--border)}
+  .col>label{display:flex;flex-direction:column;gap:6px;font-weight:600;color:#e2e8f0}
+  .col>label>input,.col>label>textarea,.col>label>select{min-height:38px}
+  #playerModal .modal-card strong{color:var(--accent)}
+  #m_name{color:var(--accent)}
+  .muted{color:var(--muted)}
+</style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="bar" style="justify-content:space-between">
+        <div class="bar">
+          <img id="logoImg" class="logo" alt="Logo" />
+          <h1 class="title" style="margin-bottom:4px">Player Profiles</h1>
+        </div>
+        <div class="controls">
+          <input id="searchBar" type="search" placeholder="Search players..." />
+          <div id="authControls" class="bar">
+            <button id="loginBtn" class="secondary">Login with Discord</button>
+            <button id="logoutBtn" class="secondary" style="display:none">Logout</button>
+          </div>
+          <!-- Hidden by default; shown by JS only when logged in -->
+          <button id="addBtn" class="secondary" style="display:none">Add Player</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="content">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nickname</th><th>Monitor/Hz</th><th>Headphones</th><th>Mouse</th><th>Keyboard</th>
+                <th class="num small">DPI</th><th class="num small">Sens</th><th class="num small">eDPI</th>
+                <th class="center narrow">Zoom 2x Sens</th><th>CFG</th><th>Paks</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="profilesBody">
+              <tr><td colspan="12" style="text-align:center;color:var(--muted);padding:24px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Player info modal -->
+  <div id="playerModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h3 id="m_name" style="margin-top:0"></h3>
+      <div class="row">
+        <div class="col" style="max-width:260px">
+          <img id="m_pic" class="profile-pic" alt="Profile Picture">
+        </div>
+        <div class="col">
+          <div><strong>Nickname:</strong> <span id="m_name_inline"></span></div>
+          <div><strong>Country:</strong> <span id="m_country"></span></div>
+          <div><strong>Clan:</strong> <span id="m_clan"></span></div>
+          <div><strong>Favorite Map:</strong> <span id="m_map"></span></div>
+          <div style="margin-top:12px"><strong>About Me:</strong><div id="m_about" style="white-space:pre-wrap"></div></div>
+        </div>
+      </div>
+      <div class="bar" style="justify-content:flex-end;margin-top:12px">
+        <button id="closePlayer" class="secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit modal -->
+  <div id="editModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h3 id="editTitle">Add Player</h3>
+      <form id="editForm">
+        <input type="hidden" id="e_id">
+        <div class="row">
+          <div class="col"><label>Nickname<input id="e_nick" required></label></div>
+          <div class="col"><label>Monitor/Hz<input id="e_screen"></label></div>
+          <div class="col"><label>Headphones<input id="e_head"></label></div>
+          <div class="col"><label>Mouse<input id="e_mouse"></label></div>
+          <div class="col"><label>Keyboard<input id="e_keyboard"></label></div>
+          <div class="col"><label>DPI<input type="number" id="e_dpi"></label></div>
+          <div class="col"><label>Sens<input type="number" step="0.01" id="e_sens"></label></div>
+          <div class="col"><label>Zoom 2x Sens<input type="number" step="0.01" id="e_zoom"></label></div>
+          <div class="col"><label>Country<input id="e_country"></label></div>
+          <div class="col"><label>Clan<input id="e_clan"></label></div>
+          <div class="col"><label>Favorite Map<input id="e_map"></label></div>
+          <div class="col" style="flex:1 1 100%"><label>About Me<textarea id="e_about" maxlength="1000" rows="4" style="resize:vertical"></textarea></label></div>
+          <div class="col"><label>Profile Pic (≤ 5 MB)<input id="e_pic" type="file" accept="image/*"></label></div>
+          <div class="col"><label>CFG (text .cfg ≤ 200 KB)<input id="e_cfg" type="file" accept=".cfg,text/plain"></label></div>
+          <div class="col"><label>Personal Pak (.zip/.rar ≤ 50 MB)<input id="e_pak" type="file" accept=".zip,application/zip,.rar,application/x-rar-compressed"></label></div>
+          <div class="col" style="display:flex;align-items:end;gap:8px">
+            <button type="button" id="btnRemovePic" class="secondary">Remove Pic</button>
+            <button type="button" id="btnRemoveCfg" class="secondary">Remove CFG</button>
+            <button type="button" id="btnRemovePak" class="secondary">Remove Pak</button>
+          </div>
+        </div>
+        <div class="bar" style="margin-top:10px;justify-content:flex-end">
+          <button type="submit">Save</button>
+          <button type="button" id="cancelEdit" class="secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CFG viewer modal (nice viewer + download) -->
+  <div id="cfgModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h3 id="cfgTitle" style="margin-top:0">Config</h3>
+      <pre id="cfgText" class="code"></pre>
+      <div class="bar" style="justify-content:flex-end;margin-top:12px;gap:8px">
+        <a id="downloadCfg" class="secondary" download>Download</a>
+        <button id="closeCfg" class="secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase JS client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
