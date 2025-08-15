@@ -5,9 +5,9 @@
 
   // ====== CONFIG ======
   // Use your Supabase project URL and anon key
-  const SUPABASE_URL = 'https://kkragzcfhsxajoorsqhs.supabase.co';
+  const SUPABASE_URL = 'https://wdmpgeegzbzaafhwjqaz.supabase.co';
   const SUPABASE_ANON =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrcmFnemNmaHN4YWpvb3JzcWhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTQ4MzEsImV4cCI6MjA3MDY3MDgzMX0.5ca3Hl_I2FfnwSQc7DrMprrxMtvIIC2Inhl4nJt6hu0';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXBnZWVnemJ6YWFmaHdqcWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxNjU3NDMsImV4cCI6MjA3MDc0MTc0M30.mNcriLvMZJ6jWUutuMiXrA4PNrvmV1JmzIgxkGP3d0U';
 
   // Storage buckets
   const PIC_BUCKET = 'profile-pics';
